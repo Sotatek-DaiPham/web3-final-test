@@ -51,12 +51,13 @@
 .stake__action button {
   display: block;
   width: 45%;
-  color: #ffffff;
+  color: #ffffff !important;
   font-weight: bold;
   border: none;
   padding: 15px;
   font-size: 20px;
   cursor: pointer;
+  height: unset !important;
 }
 
 .stake__action .approve {

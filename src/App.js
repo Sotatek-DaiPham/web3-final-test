@@ -30,6 +30,7 @@ function App() {
   const { activate, account, chainId, library } = useWeb3React();
   const [loadingButton, setLoadingButton] = useState(false);
   const [loadingHarvest, setLoadingHarvest] = useState(false);
+  const [loadingApprove, setLoadingApprove] = useState(false);
   const [stakeModal, setStakeModal] = useState(false);
   const [withdrawModal, setWithdrawModal] = useState(false);
   const [balance, setBalance] = useState(0);
@@ -87,7 +88,7 @@ function App() {
           id: rec.id,
           action: depositHistory.find(item => item.id === rec.id) ? "Deposit" : "Withdraw",
           amount: web3.utils.fromWei(rec.amount),
-          time: moment.unix(rec.time).format("YYYY-MM-DD HH:mm:ss"),
+          time: moment.unix(rec.time).format("HH:mm:ss DD-MM-YYYY"),
         }
       })
       setHistoryData(historyData);
@@ -147,7 +148,7 @@ function App() {
       ],
     },
   ];
-  console.log(account);
+
   //get data with multicall
   const getMulticalData = async () => {
     try {
@@ -229,12 +230,33 @@ function App() {
   // Approve
   const handleApprove = async () => {
     const { web3, wethContract } = getWethContract(library.provider);
-    await wethContract.methods
-      .approve(MASTERCHEF_SC, web3.utils.toWei(balance))
-      .send({ from: account });
-    checkAllowance();
-  };
+    
+    if(parseFloat(balance) === 0) {
+      message.error({
+        content: "Insufficient WETH balance",
+        duration: TIME_DURATION,
+      });
 
+      return;
+    }
+   
+    if(account) {
+      try {
+        setLoadingApprove(true);
+        await wethContract.methods
+          .approve(MASTERCHEF_SC, web3.utils.toWei(balance))
+          .send({ from: account });
+
+        checkAllowance();
+        setLoadingApprove(false);
+      } catch (error) {
+        setLoadingApprove(false);
+        console.log(error);
+      }
+    }
+
+  };
+  
   // Deposit
   const handleDeposit = async (amount) => {
     const { web3, masterchefContract } = getMasterChefContract(
@@ -359,7 +381,6 @@ function App() {
     );
   };
 
-  console.log(balance);
   const renderStake = () => {
     return (
       <div className="stake__container">
@@ -401,20 +422,20 @@ function App() {
               <div className="stake__action">
                 {parseFloat(isApprove) ? (
                   <>
-                    <button onClick={handleOpenStakeModal} className="deposit">
+                    <Button onClick={handleOpenStakeModal} className="deposit">
                       Deposit
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={handleOpenWithdrawModal}
                       className="withdraw"
                     >
                       Withdraw
-                    </button>
+                    </Button>
                   </>
                 ) : (
-                  <button onClick={handleApprove} className="approve">
+                  <Button loading={loadingApprove} onClick={handleApprove} className="approve">
                     Approve
-                  </button>
+                  </Button>
                 )}
               </div>
               <CustomModal
@@ -438,7 +459,7 @@ function App() {
             </Card>
           </Col>
           <Col span={12}>
-            <Card title="History" bordered={true}>
+            <Card title="History of Account" bordered={true}>
               <HistoryTable history={historyData}/>
             </Card>
           </Col>
