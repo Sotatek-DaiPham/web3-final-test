@@ -1,0 +1,3 @@
+export const TIME_DURATION = 7;
+export const MASTERCHEF_SC = "0x9da687e88b0A807e57f1913bCD31D56c49C872c2";
+export const WETH_SC = "0xc778417e063141139fce010982780140aa0cd5ab";
